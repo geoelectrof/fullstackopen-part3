@@ -1,5 +1,7 @@
-const express = require('express')
-const app = express()
+const express = require("express");
+const app = express();
+
+app.use(express.json());
 
 let persons = [
   {
@@ -24,34 +26,74 @@ let persons = [
   },
 ];
 
-app.get('/', (request, response) => {
-    response.send("<h1>Hello world</h1>")
-})
+app.get("/", (request, response) => {
+  response.send("<h1>Hello world</h1>");
+});
 
-app.get('/api/persons', (request, response) => {
-    response.json(persons)
-})
+app.get("/api/persons", (request, response) => {
+  response.json(persons);
+});
 
-app.get('/info', (request, response) => {
-    const d = new Date();
-    response.send("<p>Phonebook has info for " + persons.length + " people</p>" + d )
-})
+app.get("/info", (request, response) => {
+  const d = new Date();
+  response.send(
+    "<p>Phonebook has info for " + persons.length + " people</p>" + d
+  );
+});
 
-app.get('/api/persons/:id', (request, response) => {
-    const person = persons.find((person) => person.id === Number(request.params.id))
-    console.log(person, typeof person)
-    if (person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
-})
+app.get("/api/persons/:id", (request, response) => {
+  const person = persons.find(
+    (person) => person.id === Number(request.params.id)
+  );
+  console.log(person, typeof person);
+  if (person) {
+    response.json(person);
+  } else {
+    response.status(404).end();
+  }
+});
 
-app.delete('/api/persons/:id', (request, response) => {
-    persons = persons.filter(person => person.id != Number(request.params.id))
+app.delete("/api/persons/:id", (request, response) => {
+  persons = persons.filter((person) => person.id != Number(request.params.id));
 
-    response.status(204).end()
-})
+  response.status(204).end();
+});
+
+function getRandomId() {
+  return Math.floor(Math.random() * 10000);
+}
+
+app.post("/api/persons", (request, response) => {
+  const body = request.body;
+
+  if (!body.name) {
+    response.status(400).json({
+        error:'name missing'
+    })
+  }
+
+  if (!body.number) {
+    response.status(400).json({
+        error: "number missing"
+    })
+  }
+
+  if (persons.map(person => person.name).includes(body.name)){
+    response.status(400).json({
+        error: "name already in phonebook"
+    })
+  }
+
+  const person = {
+    name: body.name,
+    number: body.number,
+    id: getRandomId(),
+  };
+
+  persons = persons.concat(person);
+
+  response.json(person);
+});
 
 const PORT = 3001;
 app.listen(PORT, () => {
